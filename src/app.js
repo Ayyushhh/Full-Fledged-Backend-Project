@@ -23,4 +23,15 @@ app.use(express.static("public"))
 //to accept the users broswer cookie and set it
 app.use(cookieParser())
 
-export { app }
+
+//routes import
+import userRouter from "./routes/user.route.js"
+
+
+//routes declaration
+// app.use("/users",userRouter) this is okay but best pratice is 
+app.use("/api/v1/users",userRouter)
+
+
+
+export {app}
