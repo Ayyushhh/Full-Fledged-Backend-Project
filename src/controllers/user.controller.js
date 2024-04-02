@@ -4,12 +4,10 @@ import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
+
 //method hai ye 
 const registerUser = asyncHandler( async (req,res) => {
-    // remove password and refresh token field from response
-    // check for user creation
-    // return response (res)
-
+    
     // get user details from frontend
     const {fullname, email, username, password} = req.body
     console.log("email: ",email);
@@ -68,14 +66,19 @@ const registerUser = asyncHandler( async (req,res) => {
         password,
         username: username.toLowerCase()
     })
+
+    // remove password and refresh token field from response
         //auto create this _id when create
     const createdUser = await User.findById(user._id).select(
         "-password -refreshToken"
     )
+
+    // check for user creation
     if(!createdUser){
         throw new ApiError(500,"Something went wrong while registering the user")
     }
 
+    // return response (res)
     return res.status(201).json(
         new ApiResponse(200, createdUser, "User Register Successfully")
     )
