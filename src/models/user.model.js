@@ -1,10 +1,7 @@
 import mongoose, {Schema } from "mongoose";
-
 //jwb is bearare token h (means jiske pass bhi hoga woh accept krlega)
 import jwt from "jsonwebtoken";
-
 import bcrypt from "bcrypt";
-
 
 
 const userSchema = new Schema({
@@ -50,7 +47,6 @@ const userSchema = new Schema({
         type: String,
     }
 },{timestamps:true})
-
 
 
 //password 
