@@ -230,7 +230,7 @@ const changeCurrentPassword = asyncHandler( async(req,res) => {
 })
 
 const getCurrentUser = asyncHandler( async(req,res) => {
-    return res.status(200).json(200,req.user,"Current User Fetched Successfully")
+    return res.status(200).json(new ApiResponse(200,req.user,"Current User Fetched Successfully"))
 })
 
 const updateAccountDetials = asyncHandler(async(req,res) => {
@@ -240,11 +240,11 @@ const updateAccountDetials = asyncHandler(async(req,res) => {
         throw new ApiError(400,"All fields are required")
     }
 
-    const user = User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set: {
-                fullname: fullname,
+                fullname,
                 email:email
             }
         },
@@ -277,6 +277,8 @@ const updateUserAvatar = asyncHandler( async(req,res) =>{
         {new:true}
     ).select("-password")
 
+    //delete prev image using utility and using url
+
     return res.status(200).json(new ApiResponse(200,user,"Avatar updated Successfully"))
 
 })
@@ -305,8 +307,84 @@ const updateUserCoverImage = asyncHandler( async(req,res) => {
     return res.status(200).json(new ApiResponse(200,user,"Cover Image updated Successfully"))
 })
 
+const getUserChannelProfile = asyncHandler(async(req,res)=>{
+    //params to get the username from url
+    const {username} = req.params
+
+    if(!username){
+        throw new ApiError(400,"Username is missing")
+    }
+
+    // user aggregate pipeline to get the instead instead of searach in the User.find
+    // ye array return krta h
+    const channel = await User.aggregate([
+        {
+            $match:{
+                username: username?.toLowerCase()
+            }
+        },
+        {
+            $lookup:{
+                from: "Subscription",
+                localField: "_id",
+                foreignField: "channel",
+                as: "subscribers"
+            }
+        },
+        {
+            $lookup:{
+                from: "Subscription",
+                localField: "_id",
+                foreignField: "subscriber",
+                as: "subscribedTo"
+            }
+        },
+        {
+            $addFields:{
+                subscriberCount:{
+                    $size: "$subscribers"
+                },
+                channelsSubscribedToCount:{
+                    $size :"$subscribedTo"
+                },
+                isSubscribed:{
+                    //now to check into this array or object if the user id is there
+                    // or not inside this subscribers field which we just created using lookup
+                    // to look into the user $in and then use if and else to check if it is present or not
+                    $cond:{
+                        if: {$in: [req.user?._id, "$subscribers.subscriber"]},
+                        then: true,
+                        else: false
+                    }
+                }
+            }
+        },
+        {
+            // only the selected item you want to give
+            $project:{
+                fullname: 1,
+                username: 1,
+                subscriberCount: 1,
+                channelsSubscribedToCount: 1,
+                isSubscribed: 1,
+                avatar: 1,
+                coverImage: 1,
+                email: 1
+            }
+        }
+    ])
+    // console.log(channel);
+    if(!channel?.length){
+        throw new ApiError(404,"Channel doesnot exist")
+    }
+
+    res.status(200).json(new ApiResponse(200,channel[0], "User fetched successfuallt"))
+
+})
+
 export {
     registerUser,loginUser,logoutUser,
     refreshAccessToken,changeCurrentPassword,getCurrentUser,
-    updateAccountDetials,updateUserAvatar,updateUserCoverImage
+    updateAccountDetials,updateUserAvatar,updateUserCoverImage,
+    getUserChannelProfile
 }
