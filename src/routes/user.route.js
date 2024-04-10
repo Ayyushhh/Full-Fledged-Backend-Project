@@ -1,7 +1,8 @@
 import { Router } from "express";
-import { loginUser, logoutUser, refreshAccessToken, registerUser } from "../controllers/user.controller.js";
+import { changeCurrentPassword, getCurrentUser, getUserChannelProfile, getWatchHistory, loginUser, logoutUser, refreshAccessToken, registerUser, updateAccountDetials, updateUserAvatar, updateUserCoverImage } from "../controllers/user.controller.js";
 import {upload} from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+import multer from "multer";
 
 const router = Router();
 
@@ -27,5 +28,22 @@ router.route("/login").post(loginUser)
 router.route("/logout").post(verifyJWT, logoutUser)
 
 router.route("/refresh-token").post(refreshAccessToken)
+
+//verifyJWT middleware just to check if the user is loggedin or not
+router.route("/change-password").post(verifyJWT,changeCurrentPassword)
+
+router.route("/current-user").get(verifyJWT,getCurrentUser)
+
+//patch to only update specific things otherwise if we use post then it will update everything
+router.route("/update-account-details").patch(verifyJWT,updateAccountDetials)
+
+router.route("/update-user-avatar").patch(verifyJWT,upload.single("avatar"), updateUserAvatar)
+
+router.route("/update-cover-image").patch(verifyJWT,multer.single("coverImage"),updateUserCoverImage)
+
+// because data is coming from params that's why we have to use like this only /c/:username (this will be the same name as you used in there)
+router.route("/c/:username").get(verifyJWT, getUserChannelProfile)
+
+router.route("/watch-history").get(verifyJWT, getWatchHistory)    
 
 export default router;
