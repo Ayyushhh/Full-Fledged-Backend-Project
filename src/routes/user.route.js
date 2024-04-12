@@ -2,7 +2,6 @@ import { Router } from "express";
 import { changeCurrentPassword, getCurrentUser, getUserChannelProfile, getWatchHistory, loginUser, logoutUser, refreshAccessToken, registerUser, updateAccountDetials, updateUserAvatar, updateUserCoverImage } from "../controllers/user.controller.js";
 import {upload} from "../middlewares/multer.middleware.js"
 import { verifyJWT } from "../middlewares/auth.middleware.js";
-import multer from "multer";
 
 const router = Router();
 
@@ -39,11 +38,11 @@ router.route("/update-account-details").patch(verifyJWT,updateAccountDetials)
 
 router.route("/update-user-avatar").patch(verifyJWT,upload.single("avatar"), updateUserAvatar)
 
-router.route("/update-cover-image").patch(verifyJWT,multer.single("coverImage"),updateUserCoverImage)
+router.route("/update-cover-image").patch(verifyJWT,upload.single("coverImage"),updateUserCoverImage)
 
 // because data is coming from params that's why we have to use like this only /c/:username (this will be the same name as you used in there)
-router.route("/c/:username").get(verifyJWT, getUserChannelProfile)
+router.route("/c/:username").get(verifyJWT, getUserChannelProfile);
 
-router.route("/watch-history").get(verifyJWT, getWatchHistory)    
+router.route("/watch-history").get(verifyJWT, getWatchHistory);
 
 export default router;
